@@ -235,7 +235,8 @@ test('Containerfile keeps the rootless Podman runtime minimal and fail-closed', 
 
   assert.deepEqual(copyLines, [
     'COPY --chown=1000:1000 package.json server.js ./',
-    'COPY --chown=1000:1000 lib/pow.js ./lib/pow.js',
+    'COPY --chown=1000:1000 lib/ ./lib/',
+    'COPY --chown=1000:1000 public/ ./public/',
   ]);
   assert.doesNotMatch(containerfile, /^\s*(?:COPY|ADD)\s+\.\s/m);
   assert.match(containerfile, /^USER 1000:1000$/m);

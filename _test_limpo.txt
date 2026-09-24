@@ -1,0 +1,3 @@
+AGORA=12:13:58
+ERRO_HTTP: Impossível conectar-se ao servidor remoto
+ERRO_GC: Impossível conectar-se ao servidor remoto

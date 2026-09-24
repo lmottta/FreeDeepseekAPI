@@ -1,4 +1,4 @@
-FROM docker.io/library/node:22-alpine
+FROM node:22-alpine
 
 ENV NODE_ENV=production \
     HOST=0.0.0.0 \
@@ -6,12 +6,10 @@ ENV NODE_ENV=production \
     NON_INTERACTIVE=1 \
     DEEPSEEK_AUTH_PATH=/run/secrets/deepseek-auth.json \
     PROXY_API_KEY_FILE=/run/secrets/proxy-api-key \
-    REQUIRE_PROXY_API_KEY=1
+    REQUIRE_PROXY_API_KEY=0
 
 WORKDIR /app
 
-# FreeDeepseekAPI has no npm dependencies. Copy only the files needed by the
-# non-interactive proxy; browser auth helpers and credentials stay on the host.
 COPY --chown=1000:1000 package.json server.js ./
 COPY --chown=1000:1000 lib/ ./lib/
 COPY --chown=1000:1000 public/ ./public/

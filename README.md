@@ -1,7 +1,7 @@
 # FreeDeepseekAPI
 
 <p align="center">
-  <strong>Local OpenAI-compatible API proxy for DeepSeek Web Chat</strong>
+  <strong>Proxy de API local compatível com OpenAI para o DeepSeek Web Chat</strong>
 </p>
 
 <p align="center">
@@ -12,81 +12,81 @@
 </p>
 
 <p align="center">
-  <a href="#-quick-start">Quick Start</a> •
-  <a href="#-features">Features</a> •
-  <a href="#-examples">Examples</a> •
-  <a href="#-models">Models</a> •
+  <a href="#-início-rápido">Início Rápido</a> •
+  <a href="#recursos">Recursos</a> •
+  <a href="#-exemplos-de-requisições">Exemplos</a> •
+  <a href="#-modelos">Modelos</a> •
   <a href="#-endpoints">Endpoints</a> •
   <a href="#-open-webui">Open WebUI</a>
 </p>
 
-FreeDeepseekAPI runs a local API server for **DeepSeek Web Chat** (`chat.deepseek.com`) and lets you connect DeepSeek Web to Open WebUI, LiteLLM, Hermes, Claude Code, OpenAI SDK-style clients, and other OpenAI-compatible tools.
+A FreeDeepseekAPI executa um servidor de API local para o **DeepSeek Web Chat** (`chat.deepseek.com`) e permite que você conecte o DeepSeek Web ao Open WebUI, LiteLLM, Hermes, Claude Code, clientes estilo SDK da OpenAI e outras ferramentas compatíveis com OpenAI.
 
-The project works through your regular logged-in DeepSeek account in a separate Chrome profile. The local server accepts API requests and then talks to DeepSeek Web through the saved browser session.
+O projeto funciona através da sua conta normal logada do DeepSeek em um perfil separado do Chrome. O servidor local aceita requisições de API e então se comunica com o DeepSeek Web através da sessão do navegador salva.
 
-> ⚠️ This is an experimental web-chat proxy. DeepSeek may change the internal Web API without warning. For production use cases, the official paid DeepSeek API is more reliable.
+> ⚠️ Este é um proxy experimental de chat web. O DeepSeek pode alterar a API Web interna sem aviso. Para casos de uso em produção, a API oficial paga do DeepSeek é mais confiável.
 
 ForgetMeAI: https://t.me/forgetmeai
 
 ---
 
-## Navigation
+## Navegação
 
-- [What this gives you](#-what-this-gives-you)
-- [Features](#-features)
-- [Quick Start](#-quick-start)
-- [Windows launch](#-windows-launch)
-- [Linux / Chromium launch](#-linux--chromium-launch)
-- [VPS / headless launch](#-vps--headless-launch)
-- [Rootless Podman](#-rootless-podman)
-- [Diagnostics / doctor](#-diagnostics--doctor)
-- [Session reuse and chat reset](#-session-reuse-and-chat-reset)
-- [Multi-account pool](#-multi-account-pool)
-- [Console auth ideas](#-console-auth-ideas)
-- [Verify it works](#-verify-it-works)
-- [Request examples](#-request-examples)
+- [O que isso te oferece](#-o-que-isso-te-oferece)
+- [Recursos](#recursos)
+- [Início Rápido](#-início-rápido)
+- [Inicialização no Windows](#-inicialização-no-windows)
+- [Inicialização Linux / Chromium](#-inicialização-linux--chromium)
+- [Inicialização VPS / Headless](#-inicialização-vps--headless)
+- [Podman sem root](#-podman-sem-root)
+- [Diagnóstico / doctor](#-diagnóstico--doctor)
+- [Reutilização de sessão e reset de chat](#️-reutilização-de-sessão-e-reset-de-chat)
+- [Pool de múltiplas contas](#-pool-de-múltiplas-contas)
+- [Ideias de autenticação via console](#-ideias-de-autenticação-via-console)
+- [Verificar se funciona](#-verificar-se-funciona)
+- [Exemplos de requisições](#-exemplos-de-requisições)
   - [Chat Completions](#chat-completions)
-  - [Reasoning](#reasoning)
-  - [Web search](#web-search)
+  - [Raciocínio](#raciocínio)
+  - [Busca web](#busca-web)
   - [Streaming](#streaming)
   - [Anthropic Messages API](#anthropic-messages-api)
   - [OpenAI Responses API](#openai-responses-api)
-  - [Tool calling](#tool-calling)
-- [Models](#-models)
+  - [Chamada de ferramentas](#chamada-de-ferramentas)
+- [Modelos](#-modelos)
 - [Endpoints](#-endpoints)
 - [Open WebUI](#-open-webui)
-- [Update login](#-update-login)
-- [Tests](#-tests)
-- [Project status](#-project-status)
+- [Atualizar login](#-atualizar-login)
+- [Testes](#-testes)
+- [Status do projeto](#-status-do-projeto)
 
 ---
 
-## ✨ What this gives you
+## ✨ O que isso te oferece
 
-- Use DeepSeek Web as a local API endpoint.
-- Connect DeepSeek to Open WebUI and other OpenAI-compatible clients.
-- Get regular JSON responses or streaming SSE.
-- Use reasoning models with separate `reasoning_content`.
-- Work with Anthropic Messages API shim for Claude Code / Anthropic SDK.
-- Use OpenAI Responses API shim for new OpenAI/Codex-style clients.
-- Keep separate web sessions for different agents/users.
+- Usar o DeepSeek Web como endpoint de API local.
+- Conectar o DeepSeek ao Open WebUI e outros clientes compatíveis com OpenAI.
+- Obter respostas JSON regulares ou streaming SSE.
+- Usar modelos de raciocínio com `reasoning_content` separado.
+- Trabalhar com o shim da Anthropic Messages API para Claude Code / Anthropic SDK.
+- Usar o shim da OpenAI Responses API para novos clientes estilo OpenAI/Codex.
+- Manter sessões web separadas para diferentes agentes/usuários.
 
-##  Features
+## Recursos
 
-- **OpenAI-compatible API:** `POST /v1/chat/completions`
-- **Anthropic-compatible shim:** `POST /v1/messages`
-- **OpenAI Responses shim:** `POST /v1/responses`
-- **Streaming:** SSE chunks and regular non-stream JSON responses
-- **Reasoning output:** separate `reasoning_content` for thinking models
-- **Tool calling:** parsing OpenAI tools, Anthropic tools, and Responses function tools
-- **Model capabilities:** `GET /v1/model-capabilities` with alias → real web mode
-- **Agent sessions:** separate DeepSeek session per `user` / agent id
-- **Session recovery:** auto-reset of stale chains/sessions
-- **Zero dependencies:** Node.js 18+, no npm dependencies
+- **API compatível com OpenAI:** `POST /v1/chat/completions`
+- **Shim compatível com Anthropic:** `POST /v1/messages`
+- **Shim OpenAI Responses:** `POST /v1/responses`
+- **Streaming:** chunks SSE e respostas JSON regulares sem stream
+- **Saída de raciocínio:** `reasoning_content` separado para modelos de raciocínio
+- **Chamada de ferramentas:** parsing de tools OpenAI, tools Anthropic e function tools do Responses
+- **Capacidades de modelo:** `GET /v1/model-capabilities` com alias → modo web real
+- **Sessões de agente:** sessão DeepSeek separada por `user` / id de agente
+- **Recuperação de sessão:** reset automático de cadeias/sessões obsoletas
+- **Zero dependências:** Node.js 18+, sem dependências npm
 
 ---
 
-## ⚡ Quick Start
+## ⚡ Início Rápido
 
 ```bash
 git clone https://github.com/ForgetMeAI/FreeDeepseekAPI.git
@@ -95,52 +95,52 @@ npm run auth
 npm start
 ```
 
-`npm run auth` opens the auth menu:
+`npm run auth` abre o menu de autenticação:
 
-1. select item `1`;
-2. log in to DeepSeek in a separate Chrome profile;
-3. send a short message like `ok`;
-4. return to terminal and press Enter.
+1. selecione o item `1`;
+2. faça login no DeepSeek em um perfil separado do Chrome;
+3. envie uma mensagem curta como `ok`;
+4. volte ao terminal e pressione Enter.
 
-`npm start` shows the launch menu:
+`npm start` mostra o menu de inicialização:
 
-- `1` — authorize / update DeepSeek login
-- `2` — show models and statuses
-- `3` — start proxy
-- `4` — exit
+- `1` — autorizar / atualizar login do DeepSeek
+- `2` — mostrar modelos e status
+- `3` — iniciar proxy
+- `4` — sair
 
-For headless/CI launch without menu:
+Para inicialização headless/CI sem menu:
 
 ```bash
 NON_INTERACTIVE=1 npm start
-# or
+# ou
 SKIP_ACCOUNT_MENU=1 npm start
 ```
 
-By default the server listens on:
+Por padrão, o servidor escuta em:
 
 ```text
 http://localhost:9655
 ```
 
-By default the proxy is only accessible from the same machine. To allow
-network access, explicitly set the bind address and a proxy API key:
+Por padrão, o proxy é acessível apenas da mesma máquina. Para permitir
+acesso pela rede, defina explicitamente o endereço de bind e uma chave de API do proxy:
 
 ```bash
-HOST=0.0.0.0 PROXY_API_KEY='replace-with-a-long-random-value' npm start
+HOST=0.0.0.0 PROXY_API_KEY='substitua-por-um-valor-longo-aleatorio' npm start
 ```
 
-Then pass the key as `Authorization: Bearer <key>`. Without `PROXY_API_KEY`
-non-health endpoints remain unauthenticated, so do not expose such an
-instance to the network.
+Então passe a chave como `Authorization: Bearer <chave>`. Sem `PROXY_API_KEY`,
+os endpoints não-health permanecem sem autenticação, então não exponha essa
+instância na rede.
 
-Browser requests are allowed from loopback origins. If the UI is opened on a
-different address, add its exact origin via comma, e.g.
+Requisições do navegador são permitidas de origens loopback. Se a UI for aberta em
+um endereço diferente, adicione sua origem exata via vírgula, ex.:
 `PROXY_CORS_ORIGINS=https://ui.example.com,http://192.168.1.20:3000`.
 
 ---
 
-##  Windows Launch
+## 🪟 Inicialização no Windows
 
 ```powershell
 git clone https://github.com/ForgetMeAI/FreeDeepseekAPI.git
@@ -149,18 +149,18 @@ npm run auth
 npm start
 ```
 
-If Chrome is installed in a non-standard location, specify the path explicitly:
+Se o Chrome estiver instalado em um local não-padrão, especifique o caminho explicitamente:
 
 ```powershell
 $env:CHROME_PATH="C:\Program Files\Google\Chrome\Application\chrome.exe"
 npm run auth
 ```
 
-If Chrome is not found, `npm run auth` now prints ready-to-use instructions for Windows/macOS/Linux instead of a cryptic stack trace.
+Se o Chrome não for encontrado, `npm run auth` agora imprime instruções prontas para uso para Windows/macOS/Linux em vez de um stack trace confuso.
 
 ---
 
-##  Linux / Chromium Launch
+## 🐧 Inicialização Linux / Chromium
 
 ```bash
 git clone https://github.com/ForgetMeAI/FreeDeepseekAPI.git
@@ -169,33 +169,33 @@ CHROME_PATH=$(which chromium) npm run auth
 npm start
 ```
 
-If Chromium has a different name:
+Se o Chromium tiver um nome diferente:
 
 ```bash
 CHROME_PATH=$(which chromium-browser) npm run auth
-# or
+# ou
 CHROME_PATH=$(which google-chrome) npm run auth
 ```
 
 ---
 
-##  VPS / Headless Launch
+## ☁️ Inicialização VPS / Headless
 
-The most reliable flow without Chrome on the server:
+O fluxo mais confiável sem Chrome no servidor:
 
-1. On your home PC (where you have GUI/Chrome):
+1. No seu PC pessoal (onde você tem GUI/Chrome):
 
 ```bash
 npm run auth
 ```
 
-2. Copy `deepseek-auth.json` to VPS:
+2. Copie `deepseek-auth.json` para o VPS:
 
 ```bash
-scp deepseek-auth.json user@your-vps:/opt/FreeDeepseekAPI/deepseek-auth.json
+scp deepseek-auth.json user@seu-vps:/opt/FreeDeepseekAPI/deepseek-auth.json
 ```
 
-3. On VPS import/verify the file and set safe permissions:
+3. No VPS importe/verifique o arquivo e defina permissões seguras:
 
 ```bash
 cd /opt/FreeDeepseekAPI
@@ -203,53 +203,53 @@ npm run auth:import -- --input ./deepseek-auth.json
 npm run doctor -- --offline
 ```
 
-4. Start proxy without interactive menu:
+4. Inicie o proxy sem menu interativo:
 
 ```bash
 NON_INTERACTIVE=1 npm start
 ```
 
-You can import not only a ready-made `deepseek-auth.json`, but also a browser cookie export:
+Você pode importar não apenas um `deepseek-auth.json` pronto, mas também uma exportação de cookies do navegador:
 
 ```bash
 DEEPSEEK_TOKEN="<token>" npm run auth:import -- --input ./cookies.json
 ```
 
-> Important: `deepseek-auth.json` gives access to your DeepSeek Web login. Do not commit, do not publish, store with `0600` permissions.
+> Importante: `deepseek-auth.json` dá acesso ao seu login do DeepSeek Web. Não faça commit, não publique, armazene com permissões `0600`.
 
 ---
 
-## 🦭 Rootless Podman
+## 🦭 Podman sem root
 
-The container is intended for non-interactive proxy launch only. Perform
-browser-based authorization on the host with `npm run auth`: auth scripts and
-`deepseek-auth.json` are not copied into the image.
+O container é destinado apenas para inicialização não-interativa do proxy. Realize
+a autorização via navegador no host com `npm run auth`: scripts de auth e
+`deepseek-auth.json` não são copiados para a imagem.
 
-Run Podman as a regular user, without `sudo`.
+Execute o Podman como usuário regular, sem `sudo`.
 
-1. Build the local image:
+1. Construa a imagem local:
 
 ```bash
 podman build --tag localhost/free-deepseek-api:local --file Containerfile .
 ```
 
-2. Pass DeepSeek auth and a separate proxy API key via Podman secrets:
+2. Passe o auth do DeepSeek e uma chave de API do proxy separada via secrets do Podman:
 
 ```bash
 podman secret create --replace free-deepseek-auth ./deepseek-auth.json
 
-printf 'Proxy API key: '
+printf 'Chave de API do Proxy: '
 IFS= read -r -s PROXY_API_KEY
 printf '\n'
 printf '%s' "$PROXY_API_KEY" |
   podman secret create --replace free-deepseek-proxy-key -
 ```
 
-Use a long random key. The value stays in the current shell's `PROXY_API_KEY`
-variable for API verification; it does not end up in the image or the Podman
-command line.
+Use uma chave aleatória longa. O valor fica na variável `PROXY_API_KEY`
+do shell atual para verificação da API; ele não vai para a imagem nem para a
+linha de comando do Podman.
 
-3. Run the container with minimal privileges:
+3. Execute o container com privilégios mínimos:
 
 ```bash
 podman run --detach \
@@ -263,13 +263,13 @@ podman run --detach \
   localhost/free-deepseek-api:local
 ```
 
-Inside the container, `NON_INTERACTIVE=1`, `HOST=0.0.0.0`, and paths to both
-secrets are pre-configured. `REQUIRE_PROXY_API_KEY=1` prevents the container
-from starting if the key secret is missing or empty. On the host, the port is
-only published to `127.0.0.1`; do not remove this address without a separate
-network firewall/access policy.
+Dentro do container, `NON_INTERACTIVE=1`, `HOST=0.0.0.0` e os caminhos para ambos
+os secrets estão pré-configurados. `REQUIRE_PROXY_API_KEY=1` impede que o container
+inicie se o secret da chave estiver ausente ou vazio. No host, a porta é
+publicada apenas em `127.0.0.1`; não remova este endereço sem uma política
+separada de firewall/acesso de rede.
 
-4. Verify liveness, account readiness, and the protected endpoint:
+4. Verifique se está vivo, se a conta está pronta e o endpoint protegido:
 
 ```bash
 podman healthcheck run free-deepseek-api
@@ -279,16 +279,16 @@ curl --fail \
   http://127.0.0.1:9655/v1/models
 ```
 
-The built-in healthcheck verifies the local `/health` (whether the process is
-alive). `/readyz` additionally returns `503` if no DeepSeek auth account is
-currently ready to serve requests. Container diagnostics:
+O healthcheck embutido verifica o `/health` local (se o processo está
+vivo). `/readyz` adicionalmente retorna `503` se nenhuma conta de auth do DeepSeek está
+pronta para atender requisições. Diagnóstico do container:
 
 ```bash
 podman logs free-deepseek-api
 podman inspect --format '{{.State.Health.Status}}' free-deepseek-api
 ```
 
-Stop and remove the container along with the saved Podman secrets:
+Pare e remova o container junto com os secrets salvos do Podman:
 
 ```bash
 podman stop free-deepseek-api
@@ -297,97 +297,97 @@ podman secret rm free-deepseek-auth free-deepseek-proxy-key
 unset PROXY_API_KEY
 ```
 
-When rotating auth or proxy key, replace the corresponding secret and recreate
-the container so that behavior does not depend on the Podman version.
+Ao rotacionar auth ou chave do proxy, substitua o secret correspondente e recrie
+o container para que o comportamento não dependa da versão do Podman.
 
 ---
 
-##  Diagnostics / doctor
+## 🩺 Diagnóstico / doctor
 
 ```bash
 npm run doctor
-# without network requests to DeepSeek:
+# sem requisições de rede para o DeepSeek:
 npm run doctor -- --offline
 ```
 
-`doctor` checks:
+`doctor` verifica:
 
-- whether `deepseek-auth.json` / `DEEPSEEK_AUTH_DIR` is found;
-- whether JSON is valid;
-- whether `token`, `cookie`, `wasmUrl` exist;
-- whether file permissions are safe on macOS/Linux (`0600`);
-- on normal run — whether DeepSeek PoW endpoint is reachable.
+- se `deepseek-auth.json` / `DEEPSEEK_AUTH_DIR` é encontrado;
+- se o JSON é válido;
+- se `token`, `cookie`, `wasmUrl` existem;
+- se as permissões do arquivo são seguras no macOS/Linux (`0600`);
+- em execução normal — se o endpoint PoW do DeepSeek está acessível.
 
-If you see `data.biz_data is null`, `fetch failed`, `401/403/429` or Hermes/OpenCode doesn't see models — first run `npm run doctor`.
+Se você vir `data.biz_data is null`, `fetch failed`, `401/403/429` ou o Hermes/OpenCode não enxerga os modelos — primeiro execute `npm run doctor`.
 
 ---
 
-## ♻️ Session reuse and chat reset
+## ♻️ Reutilização de sessão e reset de chat
 
-FreeDeepseekAPI doesn't create a new DeepSeek chat on every HTTP request without reason. The logic is:
+A FreeDeepseekAPI não cria um novo chat do DeepSeek a cada requisição HTTP sem motivo. A lógica é:
 
-- one `x-agent-session`, `session`, or `user` → one DeepSeek chat session;
-- if session id already exists — proxy reuses it and continues chain via `parent_message_id`;
-- auto-reset happens on TTL, DeepSeek session error, or too long message chain;
-- local history is saved as short context so new DeepSeek session can continue the conversation.
-- long agent requests are trimmed before sending via `DEEPSEEK_MAX_PROMPT_CHARS` (default 80,000 characters): the beginning of the task, fresh tool results, and tool adapter are preserved;
-- if the client already sent multi-turn history, local recovery-history is not added a second time;
-- empty responses are retried up to `DEEPSEEK_MAX_RETRIES` times (default 2), with context shrinking on each retry.
+- um `x-agent-session`, `session` ou `user` → uma sessão de chat do DeepSeek;
+- se o id da sessão já existe — o proxy reutiliza e continua a cadeia via `parent_message_id`;
+- reset automático acontece por TTL, erro de sessão do DeepSeek ou cadeia de mensagens muito longa;
+- o histórico local é salvo como contexto curto para que uma nova sessão do DeepSeek possa continuar a conversa.
+- requisições longas de agentes são cortadas antes do envio via `DEEPSEEK_MAX_PROMPT_CHARS` (padrão 80.000 caracteres): o início da tarefa, resultados recentes de ferramentas e o adaptador de ferramentas são preservados;
+- se o cliente já enviou histórico multi-turno, o histórico de recuperação local não é adicionado uma segunda vez;
+- respostas vazias são re-tentadas até `DEEPSEEK_MAX_RETRIES` vezes (padrão 2), com redução de contexto a cada tentativa.
 
-Explicitly set agent/session:
+Definir agente/sessão explicitamente:
 
 ```bash
 curl -X POST http://localhost:9655/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "x-agent-session: my-agent" \
-  -d '{"model":"deepseek-chat","messages":[{"role":"user","content":"Hi"}]}'
+  -d '{"model":"deepseek-chat","messages":[{"role":"user","content":"Oi"}]}'
 ```
 
-View active sessions:
+Ver sessões ativas:
 
 ```bash
 curl http://localhost:9655/v1/sessions
 ```
 
-Reset a single session:
+Resetar uma única sessão:
 
 ```bash
 curl -X POST "http://localhost:9655/reset-session?agent=my-agent"
 ```
 
-Reset all sessions:
+Resetar todas as sessões:
 
 ```bash
 curl -X POST "http://localhost:9655/reset-session?agent=all"
 ```
 
-Clear sessions on server restart:
+Limpar sessões ao reiniciar o servidor:
 
 ```bash
-# Start server with sessions cleared (fresh context each restart)
+# Iniciar servidor com sessões limpas (contexto limpo a cada reinício)
 DEEPSEEK_CLEAR_SESSIONS_ON_START=1 npm start
 ```
 
-This deletes `sessions.json` on startup, so the model starts with no memory of previous conversations. Useful for development/testing when you want clean context each restart.
+Isso deleta `sessions.json` na inicialização, então o modelo começa sem memória de conversas anteriores. Útil para desenvolvimento/testes quando você quer contexto limpo a cada reinício.
 
-Debug tool loading:
+Debug de carregamento de ferramentas:
 
 ```bash
-# Log all MCP tool names loaded per agent (for debugging)
+# Registrar todos os nomes de ferramentas MCP carregadas por agente (para debug)
 DEEPSEEK_LOG_TOOLS=1 npm start
 ```
 
-Shows which tools are being sent by the client and cached by the server. Disabled by default.
+Mostra quais ferramentas estão sendo enviadas pelo cliente e cacheadas pelo servidor. Desabilitado por padrão.
 
-Why chats still appear in DeepSeek Web: proxy works through internal Web Chat API, and DeepSeek stores real chat sessions on their side. This is normal for web-proxy. The task of session reuse is not to spawn new chats unnecessarily and to reset cleanly only when the chain has gone stale/broken.
+Por que chats ainda aparecem no DeepSeek Web: o proxy funciona através da API Web Chat interna, e o DeepSeek armazena sessões de chat reais do lado deles. Isso é normal para um web-proxy. O objetivo da reutilização de sessão é não criar novos chats desnecessariamente e resetar de forma limpa apenas quando a cadeia ficou obsoleta/quebrada.
 
 ---
 
-##  Multi-account pool
+## 👥 Pool de múltiplas contas
 
-You can connect multiple auth files. Correct model: sticky account per agent/session — proxy doesn't switch account inside a live DeepSeek session. If an account gets `401/403/429` and goes into cooldown, the session is safely reset and a new request may switch to another available account.
+Você pode conectar múltiplos arquivos de auth. Modelo correto: conta fixa por agente/sessão — o proxy não troca de conta dentro de uma sessão ativa do DeepSeek. Se uma conta receber `401/403/429` e entrar em cooldown, a sessão é resetada com segurança e uma nova requisição pode mudar para outra conta disponível.
 
-Option 1 — directory with auth files:
+Opção 1 — diretório com arquivos de auth:
 
 ```bash
 mkdir -p accounts
@@ -397,22 +397,22 @@ chmod 600 accounts/*.json
 DEEPSEEK_AUTH_DIR=./accounts NON_INTERACTIVE=1 npm start
 ```
 
-Option 2 — file list:
+Opção 2 — lista de arquivos:
 
 ```bash
 DEEPSEEK_AUTH_PATH="./accounts/main.json,./accounts/backup.json" NON_INTERACTIVE=1 npm start
 ```
 
-How the pool works:
+Como o pool funciona:
 
-- new agent/session gets an available account round-robin;
-- selected account is pinned to session (`sticky`);
-- on `401`, `403`, `429` account goes into cooldown;
-- if sticky-account session went into cooldown, old DeepSeek session is reset to avoid hammering rate-limited/expired account;
-- account status visible in `/health` without auth file paths or file names;
-- auth files must be stored with `0600` permissions.
+- novo agente/sessão recebe uma conta disponível em round-robin;
+- a conta selecionada é fixada na sessão (`sticky`);
+- em `401`, `403`, `429` a conta entra em cooldown;
+- se a sessão da conta fixada entrou em cooldown, a sessão antiga do DeepSeek é resetada para evitar sobrecarregar conta com rate-limit/expirada;
+- status da conta visível em `/health` sem caminhos ou nomes de arquivos de auth;
+- arquivos de auth devem ser armazenados com permissões `0600`.
 
-Configure cooldown:
+Configurar cooldown:
 
 ```bash
 DEEPSEEK_ACCOUNT_COOLDOWN_MS=600000 npm start
@@ -420,22 +420,22 @@ DEEPSEEK_ACCOUNT_COOLDOWN_MS=600000 npm start
 
 ---
 
-##  Console auth ideas
+## 🔑 Ideias de autenticação via console
 
-Password flow from PR #3 can be done, but safer not to store password and not make it default. Normal implementation:
+O fluxo de senha do PR #3 pode ser feito, mas é mais seguro não armazenar a senha e não torná-lo padrão. Implementação normal:
 
-1. `npm run auth:console` asks for email/phone and password via hidden prompt.
-2. Password stays only in process memory, not written to files/logs/history.
-3. Script replicates Web login flow via `fetch`/CDP: gets captcha/verify challenge, gives human link/code, waits for confirmation.
-4. After successful login, only standard-format `deepseek-auth.json` is saved.
-5. If DeepSeek asks for captcha/2FA — script honestly says "open link, pass check, press Enter", doesn't try to bypass protection.
-6. For VPS better mode `auth:console --no-save-password --output deepseek-auth.json`.
+1. `npm run auth:console` pede email/telefone e senha via prompt oculto.
+2. A senha permanece apenas na memória do processo, não é escrita em arquivos/logs/histórico.
+3. O script replica o fluxo de login Web via `fetch`/CDP: obtém desafio captcha/verificação, fornece link/código humano, aguarda confirmação.
+4. Após login bem-sucedido, apenas o `deepseek-auth.json` no formato padrão é salvo.
+5. Se o DeepSeek pedir captcha/2FA — o script honestamente diz "abra o link, passe a verificação, pressione Enter", não tenta burlar a proteção.
+6. Para VPS melhor modo `auth:console --no-save-password --output deepseek-auth.json`.
 
-Minimal safe MVP: console auth only interactive, no env password. Acceptable automation variant: `DEEPSEEK_EMAIL=... npm run auth:console`, but password still entered via hidden prompt.
+MVP mínimo seguro: auth via console apenas interativo, sem senha via env. Variante de automação aceitável: `DEEPSEEK_EMAIL=... npm run auth:console`, mas a senha ainda é inserida via prompt oculto.
 
 ---
 
-## ✅ Verify it works
+## ✅ Verificar se funciona
 
 ```bash
 curl http://localhost:9655/
@@ -443,11 +443,11 @@ curl http://localhost:9655/v1/models
 curl http://localhost:9655/v1/model-capabilities
 ```
 
-If all good, `/health` returns server status, list of supported aliases, and `config_ready: true`.
+Se tudo estiver bem, `/health` retorna o status do servidor, lista de aliases suportados e `config_ready: true`.
 
 ---
 
-##  Request examples
+## 📋 Exemplos de requisições
 
 ### Chat Completions
 
@@ -456,39 +456,39 @@ curl -X POST http://localhost:9655/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "deepseek-chat",
-    "messages": [{"role": "user", "content": "Hi! Reply with one phrase."}],
+    "messages": [{"role": "user", "content": "Oi! Responda com uma frase."}],
     "stream": false
   }'
 ```
 
-### Reasoning
+### Raciocínio
 
 ```bash
 curl -X POST http://localhost:9655/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "deepseek-reasoner",
-    "messages": [{"role": "user", "content": "Solve briefly: why is the sky blue?"}],
+    "messages": [{"role": "user", "content": "Resolva brevemente: por que o céu é azul?"}],
     "stream": false
   }'
 ```
 
-For reasoning models, API returns the reasoning chain separately from the final answer:
+Para modelos de raciocínio, a API retorna a cadeia de raciocínio separada da resposta final:
 
-- non-stream: `choices[0].message.reasoning_content`
+- sem stream: `choices[0].message.reasoning_content`
 - stream: `choices[0].delta.reasoning_content`
-- usage: `usage.completion_tokens_details.reasoning_tokens`
+- uso: `usage.completion_tokens_details.reasoning_tokens`
 
-`reasoning_tokens` — approximate estimate based on extracted DeepSeek Web `THINK` text, because web stream doesn't return official token usage for reasoning separately.
+`reasoning_tokens` — estimativa aproximada baseada no texto `THINK` extraído do DeepSeek Web, porque o stream web não retorna uso oficial de tokens para raciocínio separadamente.
 
-### Web search
+### Busca web
 
 ```bash
 curl -X POST http://localhost:9655/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "deepseek-chat-search",
-    "messages": [{"role": "user", "content": "Find a fresh fact about DeepSeek and reply briefly."}],
+    "messages": [{"role": "user", "content": "Encontre um fato recente sobre o DeepSeek e responda brevemente."}],
     "stream": false
   }'
 ```
@@ -500,7 +500,7 @@ curl -N -X POST http://localhost:9655/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "deepseek-chat",
-    "messages": [{"role": "user", "content": "Write a short joke."}],
+    "messages": [{"role": "user", "content": "Escreva uma piada curta."}],
     "stream": true
   }'
 ```
@@ -513,12 +513,12 @@ curl -X POST http://localhost:9655/v1/messages \
   -d '{
     "model": "deepseek-chat",
     "max_tokens": 512,
-    "messages": [{"role": "user", "content": "Reply exactly OK"}],
+    "messages": [{"role": "user", "content": "Responda exatamente OK"}],
     "stream": false
   }'
 ```
 
-For Claude Code you can specify backend directly:
+Para o Claude Code você pode especificar o backend diretamente:
 
 ```bash
 export ANTHROPIC_BASE_URL="http://127.0.0.1:9655"
@@ -534,130 +534,130 @@ curl -X POST http://localhost:9655/v1/responses \
   -H "Content-Type: application/json" \
   -d '{
     "model": "deepseek-chat",
-    "input": "Reply exactly OK",
+    "input": "Responda exatamente OK",
     "stream": false
   }'
 ```
 
-### Tool calling
+### Chamada de ferramentas
 
-FreeDeepseekAPI accepts:
+A FreeDeepseekAPI aceita:
 
-- OpenAI `tools`;
-- Anthropic `tools`;
-- Responses API function tools.
+- `tools` da OpenAI;
+- `tools` da Anthropic;
+- function tools da Responses API.
 
-Proxy asks DeepSeek to return strict JSON tool call, but also parses fallback formats:
+O proxy pede ao DeepSeek para retornar chamada de ferramenta em JSON estrito, mas também analisa formatos de fallback:
 
 - `TOOL_CALL:`
-- fenced JSON with an explicit `tool_call`, `tool_calls`, or `function_call` envelope
+- JSON com cercas com envelope explícito `tool_call`, `tool_calls` ou `function_call`
 - `<tool_call>...</tool_call>`
-- DeepSeek DSML (`<｜DSML｜tool_calls>...`) and web variant with `<｜｜DSML｜｜ Tool Calls>`
+- DeepSeek DSML (`<｜DSML｜tool_calls>...`) e variante web com `<｜｜DSML｜｜ Tool Calls>`
 
 ---
 
-##  Models
+## 🤖 Modelos
 
-`GET /v1/models` returns only aliases that are currently verified and working through this proxy.
+`GET /v1/models` retorna apenas aliases que estão atualmente verificados e funcionando através deste proxy.
 
-### Working aliases
+### Aliases funcionais
 
-| Alias | Web mode | Reasoning | Web search | Notes |
+| Alias | Modo web | Raciocínio | Busca web | Notas |
 | --- | --- | --- | --- | --- |
-| `deepseek-chat` | `Fast` / `default` | no | no | basic chat |
-| `deepseek-v3` | `Fast` / `default` | no | no | compatibility alias |
-| `deepseek-default` | `Fast` / `default` | no | no | compatibility alias |
-| `deepseek-reasoner` | `Fast` / `default` | yes | no | `thinking_enabled=true` |
-| `deepseek-r1` | `Fast` / `default` | yes | no | R1-compatible alias |
-| `deepseek-chat-search` | `Fast` / `default` | no | yes | web search |
-| `deepseek-default-search` | `Fast` / `default` | no | yes | web search alias |
-| `deepseek-reasoner-search` | `Fast` / `default` | yes | yes | reasoning + search |
-| `deepseek-r1-search` | `Fast` / `default` | yes | yes | R1-compatible + search |
-| `deepseek-expert` | `Expert` / `expert` | no | no | Expert mode |
-| `deepseek-v4-pro` | `Expert` / `expert` | yes | no | Expert + reasoning |
+| `deepseek-chat` | `Fast` / `default` | não | não | chat básico |
+| `deepseek-v3` | `Fast` / `default` | não | não | alias de compatibilidade |
+| `deepseek-default` | `Fast` / `default` | não | não | alias de compatibilidade |
+| `deepseek-reasoner` | `Fast` / `default` | sim | não | `thinking_enabled=true` |
+| `deepseek-r1` | `Fast` / `default` | sim | não | alias compatível com R1 |
+| `deepseek-chat-search` | `Fast` / `default` | não | sim | busca web |
+| `deepseek-default-search` | `Fast` / `default` | não | sim | alias de busca web |
+| `deepseek-reasoner-search` | `Fast` / `default` | sim | sim | raciocínio + busca |
+| `deepseek-r1-search` | `Fast` / `default` | sim | sim | compatível com R1 + busca |
+| `deepseek-expert` | `Expert` / `expert` | não | não | modo Expert |
+| `deepseek-v4-pro` | `Expert` / `expert` | sim | não | Expert + raciocínio |
 
-Full mapping:
+Mapeamento completo:
 
 ```bash
 curl http://localhost:9655/v1/model-capabilities
 ```
 
-According to the official DeepSeek V4 Preview page, `deepseek-chat` and `deepseek-reasoner` are currently routed to `deepseek-v4-flash` non-thinking/thinking. In `chat.deepseek.com` direct stream the exact checkpoint name is not returned (`model: ""`), so the proxy records both the web mode (`default` / `Fast`) and the current official routing (`DeepSeek-V4-Flash`).
+De acordo com a página oficial do DeepSeek V4 Preview, `deepseek-chat` e `deepseek-reasoner` são atualmente roteados para `deepseek-v4-flash` sem raciocínio/com raciocínio. No stream direto do `chat.deepseek.com` o nome exato do checkpoint não é retornado (`model: ""`), então o proxy registra tanto o modo web (`default` / `Fast`) quanto o roteamento oficial atual (`DeepSeek-V4-Flash`).
 
-Current DeepSeek Web remote config shows these web modes:
+A configuração remota atual do DeepSeek Web mostra estes modos web:
 
-- `default` / UI `Fast` — works; supports `thinking_enabled` and `search_enabled`.
-- `expert` / UI `Expert` — works via the current web contract (`x-client-version=2.0.0`) and supports `thinking_enabled`. In `/v1/models`, `deepseek-expert` is served without reasoning and `deepseek-v4-pro` as Expert + reasoning.
-- `vision` / UI `Recognition` — visible in remote config, but currently the direct Web API returns `backend_err_by_model` (`Vision is temporarily unavailable`). Therefore `deepseek-vision` is hidden from `/v1/models`.
+- `default` / UI `Fast` — funciona; suporta `thinking_enabled` e `search_enabled`.
+- `expert` / UI `Expert` — funciona via o contrato web atual (`x-client-version=2.0.0`) e suporta `thinking_enabled`. Em `/v1/models`, `deepseek-expert` é servido sem raciocínio e `deepseek-v4-pro` como Expert + raciocínio.
+- `vision` / UI `Recognition` — visível na configuração remota, mas atualmente a Web API direta retorna `backend_err_by_model` (`Vision is temporarily unavailable`). Portanto, `deepseek-vision` está oculto de `/v1/models`.
 
-Search for Expert is unavailable per remote config, so `deepseek-expert-search` remains unsupported.
+Busca para Expert não está disponível na configuração remota, então `deepseek-expert-search` permanece sem suporte.
 
 ---
 
-##  Endpoints
+## 📡 Endpoints
 
-| Method | Path | Purpose |
+| Método | Caminho | Finalidade |
 | --- | --- | --- |
-| `GET` | `/` or `/health` | proxy status |
-| `GET` | `/v1/models` | list of working OpenAI-compatible aliases |
-| `GET` | `/v1/model-capabilities` | full alias mapping, real model, capabilities |
-| `POST` | `/v1/chat/completions` | OpenAI-compatible Chat Completions |
-| `POST` | `/v1/messages` | Anthropic Messages API shim |
-| `POST` | `/v1/responses` | OpenAI Responses API shim |
-| `GET` | `/v1/sessions` | active local agent sessions |
-| `POST` | `/reset-session?agent=<id>` | reset a single session |
-| `POST` | `/reset-session?agent=all` | reset all sessions |
+| `GET` | `/` ou `/health` | status do proxy |
+| `GET` | `/v1/models` | lista de aliases compatíveis com OpenAI funcionais |
+| `GET` | `/v1/model-capabilities` | mapeamento completo de alias, modelo real, capacidades |
+| `POST` | `/v1/chat/completions` | Chat Completions compatível com OpenAI |
+| `POST` | `/v1/messages` | Shim da Anthropic Messages API |
+| `POST` | `/v1/responses` | Shim da OpenAI Responses API |
+| `GET` | `/v1/sessions` | sessões de agente locais ativas |
+| `POST` | `/reset-session?agent=<id>` | resetar uma única sessão |
+| `POST` | `/reset-session?agent=all` | resetar todas as sessões |
 
 ---
 
-##  Open WebUI
+## 🖥️ Open WebUI
 
-Base URL for Open WebUI in Docker:
+URL base para Open WebUI no Docker:
 
 ```text
 http://host.docker.internal:9655/v1
 ```
 
-For local launch without Docker:
+Para inicialização local sem Docker:
 
 ```text
 http://localhost:9655/v1
 ```
 
-If `PROXY_API_KEY` is not set, any API key can be used. If the key is set,
-the client must send exactly that value — proxy verifies the bearer token
-before granting access to models, sessions, and completions.
+Se `PROXY_API_KEY` não estiver definida, qualquer chave de API pode ser usada. Se a chave estiver definida,
+o cliente deve enviar exatamente esse valor — o proxy verifica o bearer token
+antes de conceder acesso a modelos, sessões e completions.
 
 ---
 
-##  Update login
+## 🔄 Atualizar login
 
 ```bash
 npm run auth
 npm start
 ```
 
-If DeepSeek starts returning `401`, `403` or asks for a new PoW/session — re-run `npm run auth` to refresh the saved browser session.
+Se o DeepSeek começar a retornar `401`, `403` ou pedir um novo PoW/sessão — re-execute `npm run auth` para atualizar a sessão do navegador salva.
 
-Local auth files must not be committed to GitHub:
+Arquivos de auth locais não devem ser commitados no GitHub:
 
 - `deepseek-auth.json`
 - `.chrome-profile-deepseek/`
 - `.env`
 
-They are already in `.gitignore`.
+Eles já estão no `.gitignore`.
 
 ---
 
-## 🧪 Tests
+## 🧪 Testes
 
-Syntax check for the project:
+Verificação de sintaxe do projeto:
 
 ```bash
 npm test
 ```
 
-Live smoke tests against a running local proxy:
+Smoke tests ao vivo contra um proxy local em execução:
 
 ```bash
 BASE_URL=http://127.0.0.1:9655 MODEL=deepseek-chat npm run test:live
@@ -665,20 +665,46 @@ BASE_URL=http://127.0.0.1:9655 MODEL=deepseek-chat npm run test:live
 
 ---
 
-##  Project status
+## 📊 Status do projeto
 
-FreeDeepseekAPI is an experimental web-chat proxy for local use and integrations. It depends on the current DeepSeek Web Chat contract, so when DeepSeek makes changes, auth/session logic or model mapping may need updating.
+FreeDeepseekAPI é um proxy experimental de chat web para uso local e integrações. Ele depende do contrato atual do DeepSeek Web Chat, então quando o DeepSeek faz mudanças, a lógica de auth/sessão ou o mapeamento de modelos podem precisar de atualização.
 
-If something stops working:
+Se algo parar de funcionar:
 
-1. refresh login via `npm run auth`;
-2. check `/v1/model-capabilities`;
-3. retry the request on a fresh session;
-4. if the problem persists — DeepSeek likely changed the internal Web API.
+1. atualize o login via `npm run auth`;
+2. verifique `/v1/model-capabilities`;
+3. tente novamente a requisição em uma sessão nova;
+4. se o problema persistir — o DeepSeek provavelmente mudou a API Web interna.
 
 ---
 
 <p align="center">
   <strong>ForgetMeAI</strong> · <a href="https://t.me/forgetmeai">Telegram</a>
 </p>
-
+ 
+ # #   =ػ�  U s o   c o m   K i l o   C o d e  
+  
+ P a r a   u s a r   o   K i l o   C o d e   c o m   o   p r o x y   F r e e D e e p s e e k A P I   s e m   e n f r e n t a r   o   e r r o   d e   c e r t i f i c a d o   a u t o  a s s i n a d o ,   e x e c u t e   u m   d o s   s c r i p t s   d e   i n i c i a l i z a � � o   f o r n e c i d o s :  
+  
+ -   * * W i n d o w s : * *   ` s t a r t - k i l o . b a t `  
+ -   * * L i n u x / m a c O S / G i t   B a s h : * *   ` s t a r t - k i l o . s h `  
+  
+ E s s e s   s c r i p t s   d e f i n e m   a   v a r i � v e l   d e   a m b i e n t e   ` N O D E _ E X T R A _ C A _ C E R T S `   a p o n t a n d o   p a r a   o   ` c e r t . p e m `   i n c l u i d o   n o   p r o j e t o ,   p e r m i t i n d o   q u e   o   N o d e . j s   u s a d o   p e l o   K i l o   C o d e   c o n f i e   n o   c e r t i f i c a d o   g e r a d o   l o c a l m e n t e .  
+  
+ D e p o i s   d e   e x e c u t a r   o   s c r i p t ,   o   K i l o   C o d e   s e r �   a b e r t o   n a   p a s t a   d o   p r o j e t o   e   j �   e s t a r �   c o n f i g u r a d o   p a r a   s e   c o n e c t a r   a o   e n d p o i n t   ` h t t p s : / / 1 9 2 . 1 6 8 . 1 . 2 0 : 9 6 5 5 / v 1 `   u s a n d o   o   m o d e l o   ` d e e p s e e k - c h a t `   ( o u   o u t r o   d e   s u a   e s c o l h a ) .  
+  
+ >   * * O b s e r v a � � o : * *   S e   v o c �   p r e f e r i r   i n i c i a r   o   K i l o   C o d e   m a n u a l m e n t e ,   b a s t a   d e f i n i r   a   v a r i � v e l   a n t e s   d e   l a n � �  l o :  
+ >    
+ >   ` ` ` p o w e r s h e l l  
+ >   $ e n v : N O D E _ E X T R A _ C A _ C E R T S   =   " c a m i n h o \ p a r a \ c e r t . p e m "  
+ >   c o d e   .  
+ >   ` ` `  
+ >    
+ >   o u   n o   b a s h :  
+ >    
+ >   ` ` ` b a s h  
+ >   e x p o r t   N O D E _ E X T R A _ C A _ C E R T S = " $ ( p w d ) / c e r t . p e m "  
+ >   c o d e   .  
+ >   ` ` `  
+  
+ 

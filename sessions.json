@@ -1,0 +1,52 @@
+{
+  "dev-agent": {
+    "history": [
+      {
+        "user": "User: oi",
+        "assistant": "Olá! Como posso ajudar você hoje?"
+      },
+      {
+        "user": "User: Diga OK funcionando",
+        "assistant": "OK funcionando"
+      },
+      {
+        "user": "User: Diga apenas: ceu azul ok",
+        "assistant": "ceu azul ok"
+      },
+      {
+        "user": "User: Diga apenas: busca ok",
+        "assistant": "busca ok"
+      },
+      {
+        "user": "User: OK",
+        "assistant": "OK"
+      },
+      {
+        "user": "User: Diga: ok",
+        "assistant": "ok"
+      },
+      {
+        "user": "User: Diga: ok",
+        "assistant": "ok"
+      },
+      {
+        "user": "User: OK",
+        "assistant": "OK"
+      },
+      {
+        "user": "User: OK",
+        "assistant": "OK"
+      },
+      {
+        "user": "User: OK",
+        "assistant": "OK"
+      },
+      {
+        "user": "User: OK",
+        "assistant": "OK"
+      }
+    ],
+    "accountId": "account_1",
+    "lastActivityAt": 1789969033622
+  }
+}

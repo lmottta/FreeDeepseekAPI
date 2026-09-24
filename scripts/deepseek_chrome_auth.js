@@ -453,21 +453,24 @@ async function main() {
     await cdp.send('Network.enable');
 
     console.log(
-        '\n[auth] Chrome is open. Log in to DeepSeek in THIS separate window.',
-    );
-    console.log(
-        '[auth] After logging in, send a short message to DeepSeek, for example: ok',
-    );
-    await ask(
-        '[auth] When you have logged in and sent the test message — press ENTER here: ',
+        '\n[auth] Chrome is open. Waiting for DeepSeek login...',
     );
 
     let auth = null;
-    for (let i = 0; i < 20; i++) {
+    let found = false;
+    for (let i = 0; i < 300; i++) { // Espera até 150 segundos
         auth = await readPageAuth(cdp);
-        if (auth.token && auth.cookie) break;
+        if (auth.token && auth.cookie) {
+            found = true;
+            break;
+        }
         await sleep(500);
     }
+    
+    if (!found) {
+        console.error('[auth] Timeout waiting for login.');
+    }
+    
     const { href, cookiesCount, ...persisted } = auth;
     fs.writeFileSync(outPath, JSON.stringify(persisted, null, 2));
     console.log(`[auth] Saved: ${outPath}`);

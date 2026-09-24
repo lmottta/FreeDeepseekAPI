@@ -1,0 +1,6 @@
+12:17:37 BEFORE_KILL
+node pid=24684 ppid=8248 cr=11:57:29
+node pid=25536 ppid=9868 cr=11:57:37
+12:17:37 MATA_TUDO_NODE
+Matado 24684
+Matado 25536

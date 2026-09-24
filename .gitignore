@@ -15,4 +15,6 @@ data/accounts/*.json
 /tmp/deepseek_response_*
 .DS_Store
 *.pdf
+proxy-api-key.txt
+docker-compose.override.yml
 

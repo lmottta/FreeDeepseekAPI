@@ -1,0 +1,64 @@
+services:
+  free-deepseek-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: free-deepseek-api:local
+    container_name: free-deepseek-api
+    restart: unless-stopped
+    ports:
+      - "0.0.0.0:9655:9655"
+    environment:
+      - NODE_ENV=production
+      - HOST=0.0.0.0
+      - PORT=9655
+      - NON_INTERACTIVE=1
+      - DEEPSEEK_AUTH_PATH=/run/secrets/deepseek-auth.json
+      - PROXY_API_KEY_FILE=/run/secrets/proxy-api-key
+      - REQUIRE_PROXY_API_KEY=${REQUIRE_PROXY_API_KEY:-0}
+      - DEEPSEEK_MAX_PROMPT_CHARS=${DEEPSEEK_MAX_PROMPT_CHARS:-80000}
+      - DEEPSEEK_MAX_RETRIES=${DEEPSEEK_MAX_RETRIES:-2}
+      - DEEPSEEK_ACCOUNT_COOLDOWN_MS=${DEEPSEEK_ACCOUNT_COOLDOWN_MS:-600000}
+      - DEEPSEEK_CLEAR_SESSIONS_ON_START=${DEEPSEEK_CLEAR_SESSIONS_ON_START:-0}
+      - DEEPSEEK_LOG_TOOLS=${DEEPSEEK_LOG_TOOLS:-0}
+      # Trust the Docker bridge networks as "local" so /api/proxy-key works from
+      # the host through port mapping (override with PROXY_LOCAL_IPS if needed).
+      # Default covers Docker default bridge (172.17.0.0/16) and common custom bridges (172.16.0.0/12)
+      - PROXY_LOCAL_IPS=${PROXY_LOCAL_IPS:-172.16.0.0/12}
+      # Browser origins allowed (CORS). Required to use /chat from another
+      # machine on the LAN, e.g. https://192.168.1.20:9655/chat
+      - PROXY_CORS_ORIGINS=${PROXY_CORS_ORIGINS:-}
+      # Writable session store (image is read-only; /app/data is tmpfs)
+      - DEEPSEEK_SESSION_FILE=/app/data/sessions.json
+      # SSL/HTTPS (optional - if certs provided, server runs HTTPS)
+      - SSL_CERT_FILE=/run/secrets/ssl-cert
+      - SSL_KEY_FILE=/run/secrets/ssl-key
+    secrets:
+      - deepseek-auth.json
+      - proxy-api-key
+      - ssl-cert
+      - ssl-key
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /app/data
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "node", "-e", "const https=require('https');const fs=require('fs');const proto=fs.existsSync('/run/secrets/ssl-cert')?'https':'http';const mod=require(proto);const req=mod.get({host:'127.0.0.1',port:process.env.PORT||9655,path:'/health',rejectUnauthorized:false},res=>{res.resume();process.exit(res.statusCode===200?0:1)});req.on('error',()=>process.exit(1));req.setTimeout(4000,()=>{req.destroy();process.exit(1)})"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+
+secrets:
+  deepseek-auth.json:
+    file: ./deepseek-auth.json
+  proxy-api-key:
+    file: ./proxy-api-key.txt
+  ssl-cert:
+    file: ./cert.pem
+  ssl-key:
+    file: ./key.pem

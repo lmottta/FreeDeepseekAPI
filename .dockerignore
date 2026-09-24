@@ -1,0 +1,7 @@
+*
+!Dockerfile
+!.dockerignore
+!package.json
+!server.js
+!lib/
+!public/
