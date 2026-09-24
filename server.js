@@ -490,8 +490,9 @@ function createSession() {
     };
 }
 
-// Session persistence — save/load sessions to disk
-const SESSION_FILE = path.join(__dirname, 'sessions.json');
+// Session persistence — save/load sessions to disk.
+// Overridable via DEEPSEEK_SESSION_FILE (containers: point at a writable path).
+const SESSION_FILE = process.env.DEEPSEEK_SESSION_FILE || path.join(__dirname, 'sessions.json');
 
 function saveSessions() {
     try {
@@ -2083,7 +2084,42 @@ function formatMessages(messages, tools) {
 
 function isLocal(req) {
     const ip = (req.socket && req.socket.remoteAddress) || '';
-    return ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1';
+    if (ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1') return true;
+    // Docker/NAT: connections from the host reach the container with the bridge
+    // gateway IP (e.g. 172.17.0.1), never 127.0.0.1. Opt-in trust list so
+    // /api/proxy-key and /api/accounts keep working behind port mapping.
+    // Example: PROXY_LOCAL_IPS=172.16.0.0/12,10.0.0.5
+    return isTrustedLocalIp(ip, process.env.PROXY_LOCAL_IPS || '');
+}
+
+function ipToLong(ip) {
+    const parts = String(ip || '').trim().split('.');
+    if (parts.length !== 4) return null;
+    let n = 0;
+    for (const p of parts) {
+        if (!/^\d{1,3}$/.test(p)) return null;
+        const b = Number(p);
+        if (b < 0 || b > 255) return null;
+        n = (n * 256 + b) >>> 0;
+    }
+    return n >>> 0;
+}
+
+function isTrustedLocalIp(ip, list) {
+    let normalized = String(ip || '').trim().replace(/^\[|\]$/g, '');
+    if (normalized.startsWith('::ffff:')) normalized = normalized.slice('::ffff:'.length);
+    const addr = ipToLong(normalized);
+    if (addr == null) return false;
+    for (const entry of String(list || '').split(',').map(s => s.trim()).filter(Boolean)) {
+        const [base, bitsRaw] = entry.split('/');
+        const baseAddr = ipToLong(base);
+        if (baseAddr == null) continue;
+        const bits = bitsRaw === undefined || bitsRaw === '' ? 32 : Number(bitsRaw);
+        if (!Number.isInteger(bits) || bits < 0 || bits > 32) continue;
+        const mask = bits === 0 ? 0 : (0xFFFFFFFF << (32 - bits)) >>> 0;
+        if (((addr & mask) >>> 0) === ((baseAddr & mask) >>> 0)) return true;
+    }
+    return false;
 }
 
 // CSRF guard for account management: reject cross-site requests.
@@ -2093,8 +2129,39 @@ function isCrossOrigin(req) {
     try { return new URL(src).host !== req.headers.host; } catch { return true; }
 }
 
-// === HTTP Server ===
-const server = http.createServer(async (req, res) => {
+// === HTTP/HTTPS Server ===
+const https = require('https');
+
+function loadSSLCredentials() {
+    const certFile = process.env.SSL_CERT_FILE;
+    const keyFile = process.env.SSL_KEY_FILE;
+    const cert = process.env.SSL_CERT;
+    const key = process.env.SSL_KEY;
+
+    if (certFile && keyFile) {
+        try {
+            return {
+                cert: fs.readFileSync(certFile),
+                key: fs.readFileSync(keyFile)
+            };
+        } catch (e) {
+            console.error(`[DS-API] Failed to load SSL cert/key from files: ${e.message}`);
+            return null;
+        }
+    }
+    if (cert && key) {
+        return { cert, key };
+    }
+    return null;
+}
+
+const sslCredentials = loadSSLCredentials();
+const SERVER_PROTOCOL = sslCredentials ? 'https' : 'http';
+console.log(`[DS-API] SSL: ${sslCredentials ? 'enabled (HTTPS)' : 'disabled (HTTP)'}`);
+console.log(`[DS-API] Protocol: ${SERVER_PROTOCOL}`);
+
+// Shared request handler
+async function handleRequest(req, res) {
     const requestOrigin = req.headers.origin;
     res.setHeader('Vary', 'Origin');
     if (!isBrowserOriginAllowed(requestOrigin)) {
@@ -2106,8 +2173,11 @@ const server = http.createServer(async (req, res) => {
     setCorsResponseHeaders(res);
     if (req.method === 'OPTIONS') { res.writeHead(204); res.end(); return; }
 
-    const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
-    const isPublicProbe = req.method === 'GET' && (url.pathname === '/' || url.pathname === '/health' || url.pathname === '/readyz');
+    const url = new URL(req.url, `${SERVER_PROTOCOL}://${req.headers.host || 'localhost'}`);
+    // GET /v1/models is public (no auth): model IDs are not sensitive and
+    // IDEs (KiloCode, Open WebUI, …) auto-discover models from it, often
+    // without sending the Authorization header.
+    const isPublicProbe = req.method === 'GET' && (url.pathname === '/' || url.pathname === '/health' || url.pathname === '/readyz' || url.pathname === '/chat' || url.pathname === '/chat2' || url.pathname === '/test' || url.pathname === '/dashboard' || url.pathname === '/api/proxy-key' || url.pathname === '/v1/models');
     if (!isPublicProbe && !isProxyAuthorized(req.headers.authorization)) {
         res.writeHead(401, {
             'Content-Type': 'application/json',
@@ -2214,6 +2284,44 @@ const server = http.createServer(async (req, res) => {
             res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
             res.end('Dashboard not built (public/dashboard.html missing)');
         }
+        return;
+    }
+
+    // Chat interface (web UI)
+    if (req.method === 'GET' && (url.pathname === '/chat' || url.pathname === '/test')) {
+        try {
+            const html = fs.readFileSync(path.join(__dirname, 'public', 'chat.html'));
+            res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+            res.end(html);
+        } catch {
+            res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+            res.end('Chat UI not found (public/chat.html missing)');
+        }
+        return;
+    }
+
+    // Chat2 — advanced single-file UI (public/chat2.html), same backend as /chat
+    if (req.method === 'GET' && url.pathname === '/chat2') {
+        try {
+            const html = fs.readFileSync(path.join(__dirname, 'public', 'chat2.html'));
+            res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+            res.end(html);
+        } catch {
+            res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+            res.end('Chat2 UI not found (public/chat2.html missing)');
+        }
+        return;
+    }
+
+    // Auto-fill proxy key for local instances
+    if (req.method === 'GET' && url.pathname === '/api/proxy-key') {
+        if (!isLocal(req)) {
+            res.writeHead(403, { 'Content-Type': 'application/json' }); 
+            res.end(JSON.stringify({ error: 'Available from localhost only' })); 
+            return;
+        }
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ key: PROXY_API_KEY }));
         return;
     }
 
@@ -2809,7 +2917,7 @@ const server = http.createServer(async (req, res) => {
             inFlight--;
         }
     });
-});
+}
 
 async function runAuthScript() {
     const script = path.join(__dirname, 'scripts', 'deepseek_chrome_auth.js');
@@ -2864,6 +2972,11 @@ async function showStartupMenu() {
     }
 }
 
+// Create server with HTTP or HTTPS
+const server = sslCredentials
+    ? https.createServer(sslCredentials, handleRequest)
+    : http.createServer(handleRequest);
+
 async function main() {
     printBanner();
     requireProxyApiKey(PROXY_API_KEY, isTruthy(process.env.REQUIRE_PROXY_API_KEY));
@@ -2884,7 +2997,7 @@ async function main() {
     // Save sessions periodically (every 5 minutes)
     setInterval(saveSessions, 5 * 60 * 1000).unref();
     server.listen(PORT, HOST, () => {
-        console.log(`[DS-API] Server on http://${HOST}:${PORT} (multi-agent sessions enabled)`);
+        console.log(`[DS-API] Server on ${SERVER_PROTOCOL}://${HOST}:${PORT} (multi-agent sessions enabled)`);
         console.log(`[DS-API] ${formatWatermark()}`);
         console.log('[DS-API] POST /v1/chat/completions (OpenAI Chat Completions, stream=true|false)');
         console.log('[DS-API] POST /v1/messages — Anthropic Messages shim for Claude Code');

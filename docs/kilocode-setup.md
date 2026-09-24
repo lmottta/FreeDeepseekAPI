@@ -69,8 +69,9 @@ O KiloCode (e SDKs) recusam HTTPS auto-assinado por padrão. Opções:
 KEY=5uFfNn1oFljdeZjI4Eqb4XSLa
 BASE=https://192.168.1.20:9655
 
-# Lista modelos (esperado: 11 ids)
-curl -k $BASE/v1/models -H "Authorization: Bearer $KEY"
+# Lista modelos (público desde 2026-09-24: dispensa chave, pois IDEs
+# como o KiloCode consultam /v1/models sem Authorization para auto-detectar)
+curl -k $BASE/v1/models
 
 # Chat mínimo (esperado: HTTP 200 + choices[0].message.content)
 curl -k -X POST $BASE/v1/chat/completions \
